@@ -9,7 +9,19 @@ export class UserService {
     @Inject()
     private readonly prisma: PrismaService
 
-    async user(userWhereUniqueInput: Prisma.UserWhereUniqueInput): Promise<User | null> {
+    async user(
+        userWhereUniqueInput: Prisma.UserWhereUniqueInput
+    ): Promise<User> {
+        const user = await this.prisma.user.findUnique({
+            where: userWhereUniqueInput
+        })
+        if (!user) {
+            throw new Error ("User not found!")
+        }
+        return user;
+    }
+
+    async userSingIn(userWhereUniqueInput: Prisma.UserWhereUniqueInput): Promise<User> {
         const password: string = userWhereUniqueInput.password as string;
 
         const getUniqueUser = await this.prisma.user.findUnique({
@@ -20,7 +32,6 @@ export class UserService {
             throw new Error ("User not found!")
         }
 
-        console.log(getUniqueUser.password);
         if (await bcrypt.compare(password, getUniqueUser.password)) {
             return getUniqueUser;
         } else {
