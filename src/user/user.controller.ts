@@ -17,10 +17,10 @@ export class UserController {
     @Inject()
     private readonly userService: UserService
 
-    @Get()
-    async getUser(@Param('id') id :string) : Promise<UserModel> {
+    @Get(':id')
+    async getUser(@Param('id') id: string): Promise<UserModel> {
         try {
-            return this.userService.user({id: Number(id)})
+            return this.userService.user({ id: Number(id) })
         } catch (error) {
             console.error('Error:', error?.message)
         }
@@ -37,37 +37,18 @@ export class UserController {
         }
 
     }
-    @Post('signin')
-    async signinUser(
-        @Body() userData: Prisma.UserWhereUniqueInput,
-    ): Promise<UserModel> {
-        try {
-            return this.userService.userSingIn(userData);
-        } catch (error) {
-            console.error('Error:', error?.message)
-        }
-    }
 
     @Put('update')
     async updateUser(
         @Body() userData: Prisma.UserUpdateInput,
         @Param('id') id: string
     ): Promise<UserModel> {
-        try {
-            return this.userService.updateUser({ where: { id: Number(id) }, data: userData });
-        } catch (error) {
-            console.error('Error:', error?.message)
-        }
+        return this.userService.updateUser({ where: { id: Number(id) }, data: userData });
     }
 
     @Delete('delete')
     async deleteUser(
         @Param('id') id: string): Promise<UserModel> {
-            try {
-                return this.userService.deleteUser({id: Number(id)})
-            } catch (error) {
-                console.error('Error:', error?.message)
-            }
-            
+        return this.userService.deleteUser({ id: Number(id) })
     }
 }

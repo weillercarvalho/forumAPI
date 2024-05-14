@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
 import * as bcrypt from 'bcrypt';
@@ -11,34 +11,12 @@ export class UserService {
 
     async user(
         userWhereUniqueInput: Prisma.UserWhereUniqueInput
-    ): Promise<User> {
+    ): Promise<User | null> {
         const user = await this.prisma.user.findUnique({
             where: userWhereUniqueInput
         })
-        if (!user) {
-            throw new Error ("User not found!")
-        }
         return user;
     }
-
-    async userSingIn(userWhereUniqueInput: Prisma.UserWhereUniqueInput): Promise<User> {
-        const password: string = userWhereUniqueInput.password as string;
-
-        const getUniqueUser = await this.prisma.user.findUnique({
-            where: { email: userWhereUniqueInput.email }
-        });
-
-        if (!getUniqueUser) {
-            throw new Error ("User not found!")
-        }
-
-        if (await bcrypt.compare(password, getUniqueUser.password)) {
-            return getUniqueUser;
-        } else {
-            throw new Error ("Password doesn't match!")
-        }
-    }
-
     async createUser(data: Prisma.UserCreateInput): Promise<User> {
         const saltOrRounds = 10;
         const { password }: Prisma.UserCreateInput = data;
@@ -51,15 +29,24 @@ export class UserService {
         data: Prisma.UserUpdateInput;
     }): Promise<User> {
         const { where, data } = params;
-        return this.prisma.user.update({
+        const update = await this.prisma.user.update({
             data,
             where,
         });
+        return this.checking(update);
     }
 
     async deleteUser(where: Prisma.UserWhereUniqueInput): Promise<User> {
-        return this.prisma.user.delete({
+        const del = await this.prisma.user.delete({
             where,
         });
+        return this.checking(del);
+    }
+
+    checking (params: any) {
+        if (!params) {
+            throw new BadRequestException();
+        }
+        return params;
     }
 }
